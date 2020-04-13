@@ -70,7 +70,7 @@ tom.p0('1')=tom.p0('atm')*(1+(gamma_a-1)*0.5*M^2)^(gamma_a/(gamma_a-1));%isentro
 tom.t0('1')= tom.t0('atm')*(1+(gamma_a-1)*0.5*M^2);
 
 %Point 2
-tom.p0('2')=tom.p0('1')*Inlet_loss;
+tom.p0('2')=tom.p0('atm')*Inlet_loss;
 tom.t0('2')=tom.t0('1');
 
 %Flight velocity
@@ -127,15 +127,15 @@ else
    
     %static quatities
     p18=others.in('Static Pressure Secondary Nozzle');
-    M18=sqrt((2/(gamma_a-1))*((((tom.p0('18')/p18)^((gamma_a-1)/gamma_a))-1)*(2/(gamma_a-1))));
+    M18=sqrt((2/(gamma_a-1))*((((tom.p0('18')/p18)^((gamma_a-1)/gamma_a))-1)));
     t18=tom.t0('18')/(1+((gamma_a-1)/2)*M18^2);
     v18=M18*sqrt(gamma_a*r_a*t18);
 
     %Primary  Nozzle Area
-    others.in('Secondary Nozzle Area')=(tom.Massflow('18')*r_a*t8)/(p18*v18);
+    others.in('Secondary Nozzle Area')=(tom.Massflow('18')*r_a*t18)/(p18*v18);
 
     %Thrust Primary  Nozzle: not chocked so term A(p-patm)=0
-    others.in('Thrust Secondary Nozzle')=(tom.Massflow('18')*v18 - m*Va);
+    others.in('Thrust Secondary Nozzle')=(tom.Massflow('18')*v18 - tom.Massflow('13')*Va);
 end
 
 %Primary Flow
@@ -144,7 +144,7 @@ end
 tom.Massflow('21')=m-tom.Massflow('13');
 tom.p0('21')=Fan_pr*tom.p0('2');
 t021_is=tom.t0('2')*(Fan_pr^((gamma_a-1)/gamma_a));
-tom.t0('21')=((t013_is-tom.t0('2'))/ Fan_is_eff)+tom.t0('2');
+tom.t0('21')=((t021_is-tom.t0('2'))/ Fan_is_eff)+tom.t0('2');
 
 %Point 24
 tom.p0('24')=TPR_IPC*tom.p0('21');
@@ -185,7 +185,7 @@ tom.Massflow('4')=tom.Massflow('31')*(1+f);
  mcool=Cool_m_HPdist*tom.Massflow('25');
  tom.Massflow('41')=tom.Massflow('4')+mcool;
  %Heat diffusion by the cool massflow
- tom.t0('41')=(Cpg*tom.Massflow('4')*tom.t0('4')+Cp_a*mcool*tom.t0('25'))/(Cpg*tom.Massflow('4')+Cp_a*mcool);
+ tom.t0('41')=(Cpg*tom.Massflow('4')*tom.t0('4')+Cp_a*mcool*tom.t0('31'))/(Cpg*tom.Massflow('4')+Cp_a*mcool);
 
 
 %Point 44 - outlet of HP turbine
@@ -212,7 +212,7 @@ tom.Massflow('4')=tom.Massflow('31')*(1+f);
  %before restitution of cooling air
  %Power balance (no withdrawn power)
  plpc=tom.Massflow('21')*Cp_a*(tom.t0('24')-tom.t0('21'));
- plpt=-plpc;
+ plpt=-plpc/Mec_eff_LPshaft;
  T05_b=(plpt/(tom.Massflow('45')*Cpg))+tom.t0('45');
  %Polytropic transformation
  tom.p0('5')=tom.p0('45')*((T05_b/tom.t0('45'))^(gamma_g/(Poly_eff_LPt*(gamma_g-1))));
@@ -258,7 +258,7 @@ tom.Massflow('4')=tom.Massflow('31')*(1+f);
     
     %static quatities
     p8=others.in('Static Pressure Primary Nozzle');
-    M8=sqrt((2/(gamma_g-1))*((((tom.p0('8')/p8)^((gamma_g-1)/gamma_g))-1)*(2/(gamma_g-1))));
+    M8=sqrt((2/(gamma_g-1))*((((tom.p0('8')/p8)^((gamma_g-1)/gamma_g))-1)));
     t8=tom.t0('8')/(1+((gamma_g-1)/2)*M8^2);
     v8=M8*sqrt(gamma_g*r_g*t8);
 
@@ -266,7 +266,7 @@ tom.Massflow('4')=tom.Massflow('31')*(1+f);
     others.in('Primary Nozzle Area')=(tom.Massflow('8')*r_g*t8)/(p8*v8);
 
     %Thrust Primary  Nozzle: not chocked so term A(p-patm)=0
-    others.in('Thrust Primary Nozzle')=(tom.Massflow('8')*v8 - m*Va);
+    others.in('Thrust Primary Nozzle')=(tom.Massflow('8')*v8 - tom.Massflow('21')*Va);
 end
 
 %Global Characteristics
@@ -283,9 +283,6 @@ others.in('sfc')=(tom.Massflow('31')*f)/others.in('Thrust');
 
 tom
 others
-
-
-
 
 
 
